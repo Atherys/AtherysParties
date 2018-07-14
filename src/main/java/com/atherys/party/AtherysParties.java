@@ -1,5 +1,6 @@
 package com.atherys.party;
 
+import com.atherys.core.AtherysCore;
 import com.atherys.core.command.CommandService;
 import com.atherys.party.commands.PartyCommand;
 import com.atherys.party.data.PartyData;
@@ -22,7 +23,7 @@ import org.spongepowered.api.plugin.PluginContainer;
 import javax.inject.Inject;
 import java.io.IOException;
 
-import static com.atherys.core.AtherysCore.*;
+import static com.atherys.party.AtherysParties.*;
 
 @Plugin(id = ID, version = VERSION, name = NAME, description = DESCRIPTION, dependencies = {
         @Dependency(id = "atheryscore")
@@ -73,7 +74,7 @@ public class AtherysParties {
         PartyManager.getInstance().loadAll();
 
         try {
-            getCommandService().register(new PartyCommand(), this);
+            AtherysCore.getCommandService().register(new PartyCommand(), this);
         } catch (CommandService.AnnotatedCommandException e) {
             e.printStackTrace();
         }
