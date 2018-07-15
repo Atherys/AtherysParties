@@ -1,5 +1,10 @@
 # AtherysParties
-A Party plugin created for the A'therys Horizons server.
+A Party plugin created for the A'therys Horizons server. The purpose of
+this plugin is to introduce the basic functionality of a party, such as
+creating, joining, leaving and removing a party.
+
+This plugin does not provide any integrations with other plugins. That
+should be handled by the plugins themselves.
 
 ## Commands
 * `/party` Gets the current status of your party
