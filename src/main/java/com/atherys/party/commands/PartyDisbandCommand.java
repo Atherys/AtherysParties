@@ -13,7 +13,7 @@ import org.spongepowered.api.entity.living.player.User;
 import javax.annotation.Nonnull;
 
 @Aliases({"disband", "remove"})
-@Permission("atheryscore.party.disband")
+@Permission("atherysparties.party.disband")
 public class PartyDisbandCommand extends UserCommand {
 
     @Nonnull

@@ -18,7 +18,7 @@ import javax.annotation.Nonnull;
 import java.util.Optional;
 
 @Aliases("kick")
-@Permission("atheryscore.party.kick")
+@Permission("atherysparties.party.kick")
 public class PartyKickCommand extends UserCommand implements ParameterizedCommand {
 
     @Nonnull

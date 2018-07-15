@@ -11,7 +11,7 @@ import org.spongepowered.api.command.args.CommandContext;
 import org.spongepowered.api.entity.living.player.User;
 
 @Aliases("leave")
-@Permission("atheryscore.party.leave")
+@Permission("atherysparties.party.leave")
 public class PartyLeaveCommand extends UserCommand {
 
     @Override

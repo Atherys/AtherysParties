@@ -18,7 +18,7 @@ import javax.annotation.Nonnull;
 import java.util.Optional;
 
 @Aliases("leader")
-@Permission("atheryscore.party.leader")
+@Permission("atherysparties.party.leader")
 public class PartyLeaderCommand extends UserCommand implements ParameterizedCommand {
 
     @Nonnull

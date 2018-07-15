@@ -19,7 +19,7 @@ import javax.annotation.Nonnull;
 import java.util.Optional;
 
 @Aliases("pvp")
-@Permission("atheryscore.party.pvp")
+@Permission("atherysparties.party.pvp")
 public class PartyPvpCommand extends UserCommand implements ParameterizedCommand {
 
     @Nonnull

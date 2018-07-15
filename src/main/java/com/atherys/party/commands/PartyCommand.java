@@ -25,7 +25,7 @@ import java.util.Optional;
         PartyDisbandCommand.class,
         PartyPvpCommand.class
 })
-@Permission("atheryscore.party")
+@Permission("atherysparties.party")
 public class PartyCommand extends UserCommand {
 
     @Override
