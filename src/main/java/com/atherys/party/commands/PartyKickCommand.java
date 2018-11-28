@@ -4,7 +4,7 @@ import com.atherys.core.command.ParameterizedCommand;
 import com.atherys.core.command.UserCommand;
 import com.atherys.core.command.annotation.Aliases;
 import com.atherys.core.command.annotation.Permission;
-import com.atherys.party.database.PartyManager;
+import com.atherys.party.PartyService;
 import com.atherys.party.PartyMsg;
 import org.spongepowered.api.command.CommandException;
 import org.spongepowered.api.command.CommandResult;
@@ -26,30 +26,7 @@ public class PartyKickCommand extends UserCommand implements ParameterizedComman
     public CommandResult execute(@Nonnull User source, @Nonnull CommandContext args) throws CommandException {
         Optional<User> kickedUser = args.getOne("kickedPlayer");
 
-        if (!kickedUser.isPresent()) {
-            return CommandResult.success();
-        }
-
-        if (!PartyManager.getInstance().areUsersInSameParty(source, kickedUser.get())) {
-            PartyMsg.error(source, "That player is not in your party!");
-            return CommandResult.success();
-        }
-
-        if (kickedUser.get().equals(source)) {
-            PartyMsg.error(source, "You can't kick yourself!");
-            return CommandResult.success();
-        }
-
-        PartyManager.getInstance().getUserParty(source).ifPresent(party -> {
-            if (!party.isLeader(source)) {
-                PartyMsg.error(source, "You are not the leader of this party.");
-                return;
-            }
-
-            party.removeMember(kickedUser.get());
-            PartyMsg.error(party, kickedUser.get().getName(), " has been kicked from the party by ", source.getName());
-            PartyMsg.error(kickedUser.get(), "You have been kicked from the party");
-        });
+        args.<User>getOne("kickedPlayer").ifPresent(kickee -> PartyService.getInstance().kickFromParty(source, kickee));
 
         return CommandResult.success();
     }

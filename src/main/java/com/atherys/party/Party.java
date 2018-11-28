@@ -1,121 +1,80 @@
 package com.atherys.party;
 
-import com.atherys.core.database.api.DBObject;
-import com.atherys.core.utils.UserUtils;
-import com.atherys.party.database.PartyManager;
-import org.apache.commons.lang3.RandomUtils;
-import org.mongodb.morphia.annotations.Entity;
-import org.mongodb.morphia.annotations.Id;
-import org.spongepowered.api.entity.living.player.User;
+import com.atherys.core.db.SpongeIdentifiable;
 
+import javax.annotation.Nonnull;
+import javax.persistence.ElementCollection;
+import javax.persistence.Entity;
+import javax.persistence.Id;
 import java.util.*;
 
 @Entity
-public class Party implements DBObject {
+public class Party implements SpongeIdentifiable {
 
     @Id
     private UUID uuid;
 
     private UUID leader;
+
+    @ElementCollection
+    private Set<UUID> members;
+
     private boolean pvp;
 
-    private List<UUID> members = new ArrayList<>();
-
-    public Party() {
+    Party(UUID leader, Set<UUID> members) {
+        this.leader = leader;
+        this.members = members;
     }
 
-    private <T extends User, C extends Collection<T>> Party(T leader, C members) {
-        this.uuid = UUID.randomUUID();
-        this.leader = leader.getUniqueId();
-        addMember(leader);
-        members.forEach(this::addMember);
-    }
-
-    public static <T extends User, C extends Collection<T>> Party of(T leader, C members) {
-        Party party = new Party(leader, members);
-        PartyManager.getInstance().register(party);
-        return party;
-    }
-
+    @Nonnull
     @Override
-    public UUID getUUID() {
+    public UUID getId() {
         return uuid;
     }
 
-    public UUID getLeaderUUID() {
+    public UUID getLeader() {
         return leader;
     }
 
-    public List<UUID> getMemberUUIDs() {
+    public void setLeader(UUID leader) {
+        this.leader = leader;
+    }
+
+    public Set<UUID> getMembers() {
         return members;
     }
 
-    public Optional<? extends User> getLeader() {
-        return UserUtils.getUser(leader);
+    public void removeMember(UUID member) {
+        members.remove(member);
     }
 
-    public List<User> getMembers() {
-        List<User> users = new ArrayList<>(members.size());
-        members.forEach(member -> UserUtils.getUser(member).map(users::add));
-        return users;
+    public void addMember(UUID member) {
+        members.add(member);
     }
 
-    public <T extends User> void addMember(T user) {
-        if (!this.members.contains(user.getUniqueId())) {
-            PartyManager.getInstance().setUserParty(user, this);
-            this.members.add(user.getUniqueId());
-        }
+    public void setMembers(Set<UUID> members) {
+        this.members = members;
     }
 
-    /**
-     * Removes a member from this party. If the number of remaining members are <= 1, then this returns true.
-     *
-     * @param user The user to be removed from the party
-     */
-    public <T extends User> boolean removeMember(T user) {
-        if (this.members.contains(user.getUniqueId())) {
-            PartyManager.getInstance().removeUserParty(user);
-            this.members.remove(user.getUniqueId());
-
-            // If only 1 member is left in the party, remove it
-            if (members.size() <= 1) {
-                PartyManager.getInstance().removeParty(this);
-                return true;
-            }
-
-            // If the user that was removed from the party was the party leader, find a random member and set them as leader
-            if (user.getUniqueId().equals(leader)) setRandomLeader();
-        }
-        return false;
-    }
-
-    public <T extends User> boolean isMember(T user) {
-        Optional<Boolean> result = PartyManager.getInstance().getUserParty(user).map(party -> party.equals(this));
-        return result.orElse(false);
-    }
-
-    public <T extends User> void setLeader(T user) {
-        if (members.contains(user.getUniqueId())) leader = user.getUniqueId();
-    }
-
-    public <T extends User> boolean isLeader(T user) {
-        return isMember(user) && user.getUniqueId().equals(this.getLeaderUUID());
-    }
-
-    public void setPvp(boolean state) {
-        this.pvp = state;
-    }
-
-    public boolean hasPvp() {
+    public boolean isPvp() {
         return pvp;
     }
 
-    private void setRandomLeader() {
-        this.leader = members.get(RandomUtils.nextInt(0, members.size() - 1));
+    public void setPvp(boolean pvp) {
+        this.pvp = pvp;
     }
 
     @Override
-    public boolean equals(Object other) {
-        return other instanceof Party && ((Party) other).getUUID().equals(this.getUUID());
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        Party party = (Party) o;
+        return Objects.equals(uuid, party.uuid);
     }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(uuid);
+    }
+
 }

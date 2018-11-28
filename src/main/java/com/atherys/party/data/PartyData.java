@@ -1,7 +1,7 @@
 package com.atherys.party.data;
 
 import com.atherys.party.Party;
-import com.atherys.party.database.PartyManager;
+import com.atherys.party.PartyService;
 import org.spongepowered.api.Sponge;
 import org.spongepowered.api.data.DataContainer;
 import org.spongepowered.api.data.DataHolder;
@@ -40,7 +40,7 @@ public class PartyData extends AbstractData<PartyData, PartyData.Immutable> {
     }
 
     public Optional<Party> getParty() {
-        return PartyManager.getInstance().getParty(partyUUID);
+        return PartyService.getInstance().getParty(partyUUID);
     }
 
     public UUID getPartyUUID() {

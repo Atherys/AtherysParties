@@ -18,28 +18,12 @@ public class PartyMsg {
             .of(TextColors.GREEN, "[", TextStyles.BOLD, TextColors.DARK_AQUA, "Party", TextStyles.RESET,
                     TextColors.GREEN, "]", TextColors.RESET);
 
-    /**
-     * Sends an info message to all members of the given party. Uses {@link Party#getMembers()}
-     *
-     * @param party The party to whose members the message will be sent.
-     * @param msg   The message. Will later be wrapped in a {@link Text} object.
-     */
-    public static void info(Party party, Object... msg) {
-        for (User user : party.getMembers()) {
-            PartyMsg.info(user, msg);
-        }
+    public static Text formatError(Object... msg) {
+        return Text.of(MSG_PREFIX, TextColors.RED, " ", Text.of(msg));
     }
 
-    /**
-     * Sends an error message to all members of the given party. Uses {@link Party#getMembers()}
-     *
-     * @param party The party to whose members the message will be sent.
-     * @param msg   The message. Will later be wrapped in a {@link Text} object.
-     */
-    public static void error(Party party, Object... msg) {
-        for (User user : party.getMembers()) {
-            PartyMsg.error(user, msg);
-        }
+    public static Text formatInfo(Object... msg) {
+        return Text.of(MSG_PREFIX, TextColors.DARK_AQUA, " ", Text.of(msg));
     }
 
     /**
@@ -49,7 +33,7 @@ public class PartyMsg {
      * @param msg    The message. Will later be wrapped in a {@link Text} object.
      */
     public static void info(Player player, Object... msg) {
-        player.sendMessage(Text.of(MSG_PREFIX, TextColors.DARK_AQUA, " ", Text.of(msg)));
+        player.sendMessage(formatInfo(msg));
     }
 
     /**
@@ -59,7 +43,7 @@ public class PartyMsg {
      * @param msg    The message. Will later be wrapped in a {@link Text} object.
      */
     public static void error(Player player, Object... msg) {
-        player.sendMessage(Text.of(MSG_PREFIX, TextColors.RED, " ", Text.of(msg)));
+        player.sendMessage(formatError(msg));
     }
 
     /**

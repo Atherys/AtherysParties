@@ -4,7 +4,7 @@ import com.atherys.core.command.ParameterizedCommand;
 import com.atherys.core.command.UserCommand;
 import com.atherys.core.command.annotation.Aliases;
 import com.atherys.core.command.annotation.Permission;
-import com.atherys.party.database.PartyManager;
+import com.atherys.party.PartyService;
 import com.atherys.party.PartyMsg;
 import org.spongepowered.api.command.CommandException;
 import org.spongepowered.api.command.CommandResult;
@@ -26,26 +26,7 @@ public class PartyPvpCommand extends UserCommand implements ParameterizedCommand
     @Override
     public CommandResult execute(@Nonnull User source, @Nonnull CommandContext args) throws CommandException {
 
-        Optional<Boolean> pvp = args.getOne("toggle");
-
-        if (!pvp.isPresent()) {
-            return CommandResult.success();
-        }
-
-        if (!PartyManager.getInstance().hasUserParty(source)) {
-            PartyMsg.error(source, "You are not in a party!");
-            return CommandResult.success();
-        }
-
-        PartyManager.getInstance().getUserParty(source).ifPresent(party -> {
-            if (!party.isLeader(source)) {
-                PartyMsg.error(source, "You are not the leader of this party.");
-                return;
-            }
-
-            party.setPvp(pvp.get());
-            PartyMsg.info(party, "Party PvP set to ", pvp.get() ? TextColors.GREEN : TextColors.RED, pvp.get());
-        });
+        args.<Boolean>getOne("toggle").ifPresent(state -> PartyService.getInstance().setPartyPvp(source, state));
 
         return CommandResult.success();
     }

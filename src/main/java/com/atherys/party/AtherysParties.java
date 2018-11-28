@@ -5,7 +5,6 @@ import com.atherys.core.command.CommandService;
 import com.atherys.party.commands.PartyCommand;
 import com.atherys.party.data.PartyData;
 import com.atherys.party.data.PartyKeys;
-import com.atherys.party.database.PartyManager;
 import com.atherys.party.listeners.PlayerPartyListener;
 import org.slf4j.Logger;
 import org.spongepowered.api.Sponge;
@@ -21,7 +20,6 @@ import org.spongepowered.api.plugin.Plugin;
 import org.spongepowered.api.plugin.PluginContainer;
 
 import javax.inject.Inject;
-import java.io.IOException;
 
 import static com.atherys.party.AtherysParties.*;
 
@@ -39,8 +37,6 @@ public class AtherysParties {
 
     private static boolean init = false;
 
-    private static PartyConfig config;
-
     @Inject
     private Logger logger;
 
@@ -50,28 +46,14 @@ public class AtherysParties {
     private void init() {
         instance = this;
 
-        try {
-            config = new PartyConfig();
-            config.init();
-        } catch (IOException e) {
-            e.printStackTrace();
-            init = false;
-            return;
-        }
-
-        if (config.DEFAULT) {
-            logger.error("AtherysCore config set to default. Plugin will halt. Please modify defaultConfig in config.conf to 'false' once non-default values have been inserted.");
-            init = false;
-            return;
-        }
-
         init = true;
 
     }
 
     private void start() {
         Sponge.getEventManager().registerListeners(this, new PlayerPartyListener());
-        PartyManager.getInstance().loadAll();
+
+        PartyService.getInstance().loadAll();
 
         try {
             AtherysCore.getCommandService().register(new PartyCommand(), this);
@@ -81,7 +63,7 @@ public class AtherysParties {
     }
 
     private void stop() {
-        if (init) PartyManager.getInstance().saveAll();
+        if (init) PartyService.getInstance().saveAll();
     }
 
     @Listener
@@ -116,10 +98,6 @@ public class AtherysParties {
 
     public Logger getLogger() {
         return logger;
-    }
-
-    public static PartyConfig getConfig() {
-        return config;
     }
 
     public static AtherysParties getInstance() {
