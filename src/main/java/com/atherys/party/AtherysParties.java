@@ -2,6 +2,7 @@ package com.atherys.party;
 
 import com.atherys.core.AtherysCore;
 import com.atherys.core.command.CommandService;
+import com.atherys.core.event.AtherysHibernateConfigurationEvent;
 import com.atherys.party.commands.PartyCommand;
 import com.atherys.party.data.PartyData;
 import com.atherys.party.data.PartyKeys;
@@ -94,6 +95,11 @@ public class AtherysParties {
         if (init) {
             stop();
         }
+    }
+
+    @Listener
+    public void onHibernateConfiguration(AtherysHibernateConfigurationEvent event) {
+        event.registerEntity(Party.class);
     }
 
     public Logger getLogger() {
