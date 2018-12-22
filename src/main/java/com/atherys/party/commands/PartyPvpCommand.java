@@ -4,6 +4,7 @@ import com.atherys.core.command.ParameterizedCommand;
 import com.atherys.core.command.UserCommand;
 import com.atherys.core.command.annotation.Aliases;
 import com.atherys.core.command.annotation.Permission;
+import com.atherys.party.AtherysParties;
 import com.atherys.party.PartyService;
 import com.atherys.party.PartyMsg;
 import org.spongepowered.api.command.CommandException;
@@ -26,7 +27,7 @@ public class PartyPvpCommand extends UserCommand implements ParameterizedCommand
     @Override
     public CommandResult execute(@Nonnull User source, @Nonnull CommandContext args) throws CommandException {
 
-        args.<Boolean>getOne("toggle").ifPresent(state -> PartyService.getInstance().setPartyPvp(source, state));
+        args.<Boolean>getOne("toggle").ifPresent(state -> AtherysParties.getPartyService().setPartyPvp(source, state));
 
         return CommandResult.success();
     }

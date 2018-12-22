@@ -4,6 +4,7 @@ import com.atherys.core.command.ParameterizedCommand;
 import com.atherys.core.command.UserCommand;
 import com.atherys.core.command.annotation.Aliases;
 import com.atherys.core.command.annotation.Permission;
+import com.atherys.party.AtherysParties;
 import com.atherys.party.PartyService;
 import com.atherys.party.PartyMsg;
 import org.spongepowered.api.command.CommandException;
@@ -25,7 +26,7 @@ public class PartyLeaderCommand extends UserCommand implements ParameterizedComm
     @Override
     public CommandResult execute(@Nonnull User source, @Nonnull CommandContext args) throws CommandException {
 
-        args.<User>getOne("newLeader").ifPresent(newLeader -> PartyService.getInstance().setPartyLeader(source, newLeader));
+        args.<User>getOne("newLeader").ifPresent(newLeader -> AtherysParties.getPartyService().setPartyLeader(source, newLeader));
 
         return CommandResult.success();
     }

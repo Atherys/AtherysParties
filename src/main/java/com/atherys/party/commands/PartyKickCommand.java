@@ -4,6 +4,7 @@ import com.atherys.core.command.ParameterizedCommand;
 import com.atherys.core.command.UserCommand;
 import com.atherys.core.command.annotation.Aliases;
 import com.atherys.core.command.annotation.Permission;
+import com.atherys.party.AtherysParties;
 import com.atherys.party.PartyService;
 import com.atherys.party.PartyMsg;
 import org.spongepowered.api.command.CommandException;
@@ -26,7 +27,7 @@ public class PartyKickCommand extends UserCommand implements ParameterizedComman
     public CommandResult execute(@Nonnull User source, @Nonnull CommandContext args) throws CommandException {
         Optional<User> kickedUser = args.getOne("kickedPlayer");
 
-        args.<User>getOne("kickedPlayer").ifPresent(kickee -> PartyService.getInstance().kickFromParty(source, kickee));
+        args.<User>getOne("kickedPlayer").ifPresent(kickee -> AtherysParties.getPartyService().kickFromParty(source, kickee));
 
         return CommandResult.success();
     }
