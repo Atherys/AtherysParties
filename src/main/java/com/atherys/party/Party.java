@@ -15,10 +15,12 @@ public class Party implements SpongeIdentifiable {
 
     private UUID leader;
 
-    @ElementCollection
+    @ElementCollection(fetch = FetchType.EAGER)
     private Set<UUID> members;
 
     private boolean pvp;
+
+    Party() {}
 
     Party(UUID leader, Set<UUID> members) {
         this.uuid = UUID.randomUUID();

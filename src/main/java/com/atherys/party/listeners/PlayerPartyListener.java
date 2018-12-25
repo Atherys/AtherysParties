@@ -1,7 +1,6 @@
 package com.atherys.party.listeners;
 
 import com.atherys.party.AtherysParties;
-import com.atherys.party.PartyService;
 import org.spongepowered.api.entity.living.player.Player;
 import org.spongepowered.api.entity.living.player.User;
 import org.spongepowered.api.event.Listener;

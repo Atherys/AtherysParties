@@ -4,8 +4,6 @@ import com.atherys.core.command.UserCommand;
 import com.atherys.core.command.annotation.Aliases;
 import com.atherys.core.command.annotation.Permission;
 import com.atherys.party.AtherysParties;
-import com.atherys.party.PartyService;
-import com.atherys.party.PartyMsg;
 import org.spongepowered.api.command.CommandException;
 import org.spongepowered.api.command.CommandResult;
 import org.spongepowered.api.command.args.CommandContext;

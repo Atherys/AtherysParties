@@ -10,6 +10,7 @@ import org.spongepowered.api.entity.living.player.User;
 import org.spongepowered.api.text.Text;
 import org.spongepowered.api.text.format.TextColors;
 
+import javax.annotation.Nullable;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.Optional;
@@ -42,18 +43,32 @@ public final class PartyService {
         return repository.findById(partyUUID);
     }
 
-    public void removeParty(Party party) {
-        getPartyMembers(party).forEach(this::removeUserFromParty);
+    protected void saveParty(Party party) {
+        repository.saveOne(party);
+    }
+
+    protected void deleteParty(Party party) {
         repository.deleteOne(party);
+    }
+
+    public void removeParty(Party party) {
+        getPartyMembers(party).forEach(user -> {
+            party.removeMember(user.getUniqueId());
+            user.remove(PartyData.class);
+        });
+        deleteParty(party);
     }
 
     public Party createParty(User leader, User... members) {
         Party party = new Party(leader.getUniqueId(), new HashSet<>());
+
+        setUserParty(leader, party);
+
         for (User member : members) {
-            party.addMember(member.getUniqueId());
+            setUserParty(member, party);
         }
 
-        repository.saveOne(party);
+        saveParty(party);
 
         return party;
     }
@@ -66,7 +81,7 @@ public final class PartyService {
 
     public <T extends User> void setUserParty(T user, Party party) {
         user.offer(new PartyData(party.getUniqueId()));
-        party.getMembers().add(user.getUniqueId());
+        party.addMember(user.getUniqueId());
     }
 
     public <T extends User> void removeUserFromParty(T user) {
@@ -74,7 +89,7 @@ public final class PartyService {
             party.removeMember(user.getUniqueId());
             user.remove(PartyData.class);
 
-            if ( party.getMembers().size() <= 0 ) removeParty(party);
+            if (party.getMembers().size() == 0) removeParty(party);
         });
     }
 
@@ -98,7 +113,7 @@ public final class PartyService {
     }
 
     public boolean isUserPartyLeader(User user, Party party) {
-        return party.getLeader().equals(user.getUniqueId());
+        return isUserPartyLeader(user.getUniqueId(), party);
     }
 
     public boolean isUserPartyLeader(UUID uuid, Party party) {
@@ -146,6 +161,20 @@ public final class PartyService {
     }
 
     /**
+     * Checks if the provided users are in the same party.
+     * If both users are in a party, and both parties share the same UUID (i.e. they are the same ), this returns true.
+     * Under any other circumstances, including if neither user is in a party, this will return false.
+     *
+     * @param user1 The first user
+     * @param user2 The second user
+     */
+    public <T extends User> boolean areUsersInSameParty(User user1, User user2) {
+        Optional<Party> party1 = getUserParty(user1);
+        Optional<Party> party2 = getUserParty(user2);
+        return party1.isPresent() && party2.isPresent() && party1.get().equals(party2.get());
+    }
+
+    /**
      * Sends an info message to all members of the given party. Uses {@link Party#getMembers()}
      *
      * @param party The party to whose members the message will be sent.
@@ -167,49 +196,6 @@ public final class PartyService {
         for (User user : getPartyMembersAndPrune(party)) {
             PartyMsg.error(user, msg);
         }
-    }
-
-    /**
-     * Retrieve information in Text form for the user's party.
-     *
-     * @param user the user whose party is to be looked at
-     * @return A Text object with the required information
-     */
-    public Text printUserParty(User user) {
-        Optional<Party> party = PartyService.getInstance().getUserParty(user);
-        Text result;
-
-        if (party.isPresent()) {
-            Text.Builder partyMembers = Text.builder();
-
-            getPartyMembersAndPrune(party.get()).forEach(partyMember -> {
-                if (isUserPartyLeader(user, party.get())) {// is leader?
-                    partyMembers.append(Text.of(TextColors.RED, partyMember.getName(), "; "));
-                } else {
-                    partyMembers.append(Text.of(TextColors.DARK_AQUA, partyMember.getName(), "; "));
-                }
-            });
-
-            result = PartyMsg.formatInfo("Party Members: ", partyMembers.build());
-        } else {
-            result = PartyMsg.formatError("You are not currently in a party with anyone else.");
-        }
-
-        return result;
-    }
-
-    /**
-     * Checks if the provided users are in the same party.
-     * If both users are in a party, and both parties share the same UUID (i.e. they are the same ), this returns true.
-     * Under any other circumstances, including if neither user is in a party, this will return false.
-     *
-     * @param user1 The first user
-     * @param user2 The second user
-     */
-    public <T extends User> boolean areUsersInSameParty(User user1, User user2) {
-        Optional<Party> party1 = getUserParty(user1);
-        Optional<Party> party2 = getUserParty(user2);
-        return party1.isPresent() && party2.isPresent() && party1.get().equals(party2.get());
     }
 
     /**
@@ -235,7 +221,7 @@ public final class PartyService {
     }
 
     /**
-     * When a user invites another user to their party. If the inviter is not party of a party, a new one will be created.
+     * When a user invites another user to their party. If the inviter is not part of a party, a new one will be created.
      *
      * @param inviter The inviting user
      * @param invitee the invited user
@@ -244,23 +230,27 @@ public final class PartyService {
 
         if (inviter.getUniqueId().equals(invitee.getUniqueId())) {
             PartyMsg.error(inviter, "You can't invite yourself!");
+            return;
         }
 
         Optional<Party> inviterParty = getUserParty(inviter);
         Optional<Party> inviteeParty = getUserParty(invitee);
 
-        Party party;
-
-        // If neither the inviter nor the invitee are already in a party, create a new one
-        if (!inviterParty.isPresent() && !inviteeParty.isPresent()) {
-            party = createParty(inviter, invitee);
-            invite(inviter, invitee, party);
+        // If the invitee is already in a party, stop
+        if (inviteeParty.isPresent()) {
+            PartyMsg.error(inviter, "That player is already in a party!");
+            return;
         }
 
-        // If the inviter is in a party, check if they are a leader ( can invite new members )
-        if (inviterParty.isPresent()) {
+        // If neither the inviter nor the invitee are already in a party, create a new one
+        if (!inviterParty.isPresent()) {
+            // party = createParty(inviter, invitee);
+            invite(inviter, invitee, null);
 
-            party = inviterParty.get();
+            // If the inviter is in a party, check if they are the leader ( can invite new members )
+        } else {
+
+            Party party = inviterParty.get();
 
             // If the inviter is the party leader, invite the invitee
             if (isUserPartyLeader(inviter, party)) {
@@ -268,30 +258,38 @@ public final class PartyService {
             } else {
                 PartyMsg.error(inviter, "You are not the party leader!");
             }
-        }
 
-        // If the invitee is in a party, send error
-        if (inviteeParty.isPresent()) {
-            PartyMsg.error(inviter, "That player is already in another party!");
         }
     }
 
-    private void invite(User inviter, User invitee, Party party) {
-        Question question = Question.of(Text.of(inviter.getName(), " has invited you to their party."))
-                .addAnswer(Question.Answer.of(Text.of("Accept"), playerInvitee -> {
-                    setUserParty(invitee, party);
-
+    private void invite(User inviter, User invitee, @Nullable Party party) {
+        Question question = Question.of(Text.of(PartyMsg.MSG_PREFIX, TextColors.DARK_AQUA, " ", inviter.getName(), " has invited you to their party."))
+                .addAnswer(Question.Answer.of(Text.of(TextColors.GREEN, "Accept"), playerInvitee -> {
                     PartyMsg.info(playerInvitee, "You have accepted ", inviter.getName(), "'s invite");
-                    sendInfoToParty(party, playerInvitee.getName(), " has joined the party!");
+
+                    if (party == null) {
+                        createParty(inviter, invitee);
+
+                        PartyMsg.info(inviter, invitee.getName(), " has accepted your party invite.");
+                        PartyMsg.info(invitee, "You are now in a party with ", inviter.getName());
+                    } else {
+                        setUserParty(invitee, party);
+
+                        sendInfoToParty(party, playerInvitee.getName(), " has joined the party!");
+                    }
                 }))
-                .addAnswer(Question.Answer.of(Text.of("Reject"), playerInvitee -> {
+                .addAnswer(Question.Answer.of(Text.of(TextColors.RED, "Reject"), playerInvitee -> {
                     PartyMsg.error(playerInvitee, "You have rejected ", inviter.getName(), "'s invite");
                 }))
                 .build();
 
         question.pollChat((Player) invitee);
 
-        sendInfoToParty(party, invitee.getName(), " has been invited to the party.");
+        if (party != null) {
+            sendInfoToParty(party, invitee.getName(), " has been invited to the party.");
+        } else {
+            PartyMsg.info(inviter, invitee.getName(), " has been invited to your party.");
+        }
     }
 
     /**
@@ -344,7 +342,8 @@ public final class PartyService {
         if (!userParty.isPresent()) {
             PartyMsg.error(leaver, "You are not in a party!");
         } else {
-            if (userParty.get().getMembers().size() <= 1) {
+            // if there are 2 people left in a party, and one of them leaves, disband the party
+            if (userParty.get().getMembers().size() <= 2) {
                 removeParty(userParty.get());
                 PartyMsg.info(leaver, "Your party has been disbanded.");
             } else {
@@ -376,7 +375,7 @@ public final class PartyService {
         if (!currentParty.isPresent()) {
             PartyMsg.error(current, "You are not in a party!");
         } else {
-            if (!nextParty.isPresent() || !currentParty.get().equals(nextParty.get())) {
+            if (!areUsersInSameParty(current, next)) {
                 PartyMsg.error(current, "That player is not in your party!");
                 return;
             }
@@ -404,7 +403,7 @@ public final class PartyService {
         if (!userParty.isPresent()) {
             PartyMsg.error(setter, "You are not in a party!");
         } else {
-            if (isUserPartyLeader(setter, userParty.get())) {
+            if (!isUserPartyLeader(setter, userParty.get())) {
                 PartyMsg.error(setter, "You are not the leader of this party.");
                 return;
             }
@@ -413,5 +412,34 @@ public final class PartyService {
             sendInfoToParty(userParty.get(), "Party PvP set to ", state ? TextColors.GREEN : TextColors.RED, state);
         }
 
+    }
+
+    /**
+     * Retrieve information in Text form for the user's party.
+     *
+     * @param user the user whose party is to be looked at
+     * @return A Text object with the required information
+     */
+    public Text printUserParty(User user) {
+        Optional<Party> party = PartyService.getInstance().getUserParty(user);
+        Text result;
+
+        if (party.isPresent()) {
+            Text.Builder partyMembers = Text.builder();
+
+            getPartyMembersAndPrune(party.get()).forEach(partyMember -> {
+                if (isUserPartyLeader(partyMember, party.get())) {// is leader?
+                    partyMembers.append(Text.of(TextColors.RED, partyMember.getName(), "; "));
+                } else {
+                    partyMembers.append(Text.of(TextColors.DARK_AQUA, partyMember.getName(), "; "));
+                }
+            });
+
+            result = PartyMsg.formatInfo("Party Members: ", partyMembers.build());
+        } else {
+            result = PartyMsg.formatError("You are not currently in a party with anyone else.");
+        }
+
+        return result;
     }
 }
