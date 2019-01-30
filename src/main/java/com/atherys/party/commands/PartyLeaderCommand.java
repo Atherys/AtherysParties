@@ -19,7 +19,7 @@ import java.util.Optional;
 
 @Aliases("leader")
 @Permission("atherysparties.party.leader")
-public class PartyLeaderCommand extends UserCommand implements ParameterizedCommand {
+public class PartyLeaderCommand implements UserCommand, ParameterizedCommand {
 
     @Nonnull
     @Override

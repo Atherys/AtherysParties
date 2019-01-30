@@ -20,7 +20,7 @@ import java.util.Optional;
 
 @Aliases("pvp")
 @Permission("atherysparties.party.pvp")
-public class PartyPvpCommand extends UserCommand implements ParameterizedCommand {
+public class PartyPvpCommand implements UserCommand, ParameterizedCommand {
 
     @Nonnull
     @Override

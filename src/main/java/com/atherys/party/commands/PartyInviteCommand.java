@@ -23,7 +23,7 @@ import java.util.Optional;
 
 @Aliases({"add", "invite"})
 @Permission("atherysparties.party.invite")
-public class PartyInviteCommand extends UserCommand implements ParameterizedCommand {
+public class PartyInviteCommand implements UserCommand, ParameterizedCommand {
 
     @Nonnull
     @Override

@@ -19,7 +19,7 @@ import java.util.Optional;
 
 @Aliases("kick")
 @Permission("atherysparties.party.kick")
-public class PartyKickCommand extends UserCommand implements ParameterizedCommand {
+public class PartyKickCommand implements UserCommand, ParameterizedCommand {
 
     @Nonnull
     @Override

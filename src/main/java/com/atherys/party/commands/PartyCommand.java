@@ -27,7 +27,7 @@ import java.util.Optional;
         PartyPvpCommand.class
 })
 @Permission("atherysparties.party")
-public class PartyCommand extends UserCommand {
+public class PartyCommand implements UserCommand {
 
     @Override
     public CommandResult execute(User user, CommandContext args) throws CommandException {

@@ -14,7 +14,7 @@ import javax.annotation.Nonnull;
 
 @Aliases({"disband", "remove"})
 @Permission("atherysparties.party.disband")
-public class PartyDisbandCommand extends UserCommand {
+public class PartyDisbandCommand implements UserCommand {
 
     @Nonnull
     @Override

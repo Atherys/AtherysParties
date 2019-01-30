@@ -12,7 +12,7 @@ import org.spongepowered.api.entity.living.player.User;
 
 @Aliases("leave")
 @Permission("atherysparties.party.leave")
-public class PartyLeaveCommand extends UserCommand {
+public class PartyLeaveCommand implements UserCommand {
 
     @Override
     public CommandResult execute(User source, CommandContext args) throws CommandException {
