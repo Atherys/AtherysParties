@@ -1,11 +1,10 @@
 package com.atherys.party;
 
 import com.atherys.core.db.SpongeIdentifiable;
+import org.hibernate.annotations.GenericGenerator;
 
 import javax.annotation.Nonnull;
-import javax.persistence.ElementCollection;
-import javax.persistence.Entity;
-import javax.persistence.Id;
+import javax.persistence.*;
 import java.util.*;
 
 @Entity
@@ -22,6 +21,7 @@ public class Party implements SpongeIdentifiable {
     private boolean pvp;
 
     Party(UUID leader, Set<UUID> members) {
+        this.uuid = UUID.randomUUID();
         this.leader = leader;
         this.members = members;
     }

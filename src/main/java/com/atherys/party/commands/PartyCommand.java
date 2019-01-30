@@ -1,9 +1,11 @@
 package com.atherys.party.commands;
 
+import com.atherys.core.AtherysCore;
 import com.atherys.core.command.UserCommand;
 import com.atherys.core.command.annotation.Aliases;
 import com.atherys.core.command.annotation.Children;
 import com.atherys.core.command.annotation.Permission;
+import com.atherys.party.AtherysParties;
 import com.atherys.party.Party;
 import com.atherys.party.PartyService;
 import com.atherys.party.PartyMsg;
@@ -32,7 +34,7 @@ public class PartyCommand implements UserCommand {
     @Override
     public CommandResult execute(User user, CommandContext args) throws CommandException {
 
-        ((Player) user).sendMessage(PartyService.getInstance().printUserParty(user));
+        ((Player) user).sendMessage(AtherysParties.getPartyService().printUserParty(user));
 
         return CommandResult.success();
     }

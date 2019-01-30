@@ -5,6 +5,7 @@ import com.atherys.core.command.UserCommand;
 import com.atherys.core.command.annotation.Aliases;
 import com.atherys.core.command.annotation.Permission;
 import com.atherys.core.utils.Question;
+import com.atherys.party.AtherysParties;
 import com.atherys.party.Party;
 import com.atherys.party.PartyMsg;
 import com.atherys.party.PartyService;
@@ -30,7 +31,7 @@ public class PartyInviteCommand implements UserCommand, ParameterizedCommand {
     public CommandResult execute(@Nonnull User source, @Nonnull CommandContext args) throws CommandException {
 
         args.<User>getOne("invitedPlayer").ifPresent(invitedPlayer -> {
-            PartyService.getInstance().inviteToParty(source, invitedPlayer);
+            AtherysParties.getPartyService().inviteToParty(source, invitedPlayer);
         });
 
         return CommandResult.success();

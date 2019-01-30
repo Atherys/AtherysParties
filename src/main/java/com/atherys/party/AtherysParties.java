@@ -2,6 +2,7 @@ package com.atherys.party;
 
 import com.atherys.core.AtherysCore;
 import com.atherys.core.command.CommandService;
+import com.atherys.core.event.AtherysHibernateConfigurationEvent;
 import com.atherys.party.commands.PartyCommand;
 import com.atherys.party.data.PartyData;
 import com.atherys.party.data.PartyKeys;
@@ -43,6 +44,8 @@ public class AtherysParties {
     @Inject
     PluginContainer container;
 
+    private PartyService partyService;
+
     private void init() {
         instance = this;
 
@@ -53,7 +56,8 @@ public class AtherysParties {
     private void start() {
         Sponge.getEventManager().registerListeners(this, new PlayerPartyListener());
 
-        PartyService.getInstance().loadAll();
+        partyService = PartyService.getInstance();
+        partyService.loadAll();
 
         try {
             AtherysCore.getCommandService().register(new PartyCommand(), this);
@@ -96,9 +100,16 @@ public class AtherysParties {
         }
     }
 
+    @Listener
+    public void onHibernateConfiguration(AtherysHibernateConfigurationEvent event) {
+        event.registerEntity(Party.class);
+    }
+
     public Logger getLogger() {
         return logger;
     }
+
+    public static PartyService getPartyService() { return AtherysParties.getInstance().partyService; }
 
     public static AtherysParties getInstance() {
         return instance;

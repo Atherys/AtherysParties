@@ -3,6 +3,7 @@ package com.atherys.party.commands;
 import com.atherys.core.command.UserCommand;
 import com.atherys.core.command.annotation.Aliases;
 import com.atherys.core.command.annotation.Permission;
+import com.atherys.party.AtherysParties;
 import com.atherys.party.PartyService;
 import com.atherys.party.PartyMsg;
 import org.spongepowered.api.command.CommandException;
@@ -20,7 +21,7 @@ public class PartyDisbandCommand implements UserCommand {
     @Override
     public CommandResult execute(@Nonnull User source, @Nonnull CommandContext args) throws CommandException {
 
-        PartyService.getInstance().disbandParty(source);
+        AtherysParties.getPartyService().disbandParty(source);
 
         return CommandResult.success();
     }
