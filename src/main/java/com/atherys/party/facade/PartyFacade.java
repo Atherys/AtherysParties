@@ -11,6 +11,7 @@ import com.google.inject.Singleton;
 import org.spongepowered.api.Sponge;
 import org.spongepowered.api.entity.living.player.Player;
 import org.spongepowered.api.entity.living.player.User;
+import org.spongepowered.api.event.entity.DamageEntityEvent;
 import org.spongepowered.api.text.Text;
 import org.spongepowered.api.text.channel.MessageReceiver;
 import org.spongepowered.api.text.format.TextColors;
@@ -219,6 +220,12 @@ public final class PartyFacade {
         source.sendMessage(partyMembers.build());
     }
 
+    public void onPlayerAttack(DamageEntityEvent event, Player source, Player target) {
+        if (arePlayersInSameParty(source, target)) {
+            getPlayerParty(source).ifPresent(party -> event.setCancelled(!party.isPvp()));
+        }
+    }
+
     public Party getPlayerPartyOrThrow(Player source) throws PartyCommandException {
         PartyData partyData = source.get(PartyData.class).orElseThrow(PartyCommandException::noParty);
         return partyData.getParty().orElseThrow(PartyCommandException::noParty);
@@ -241,7 +248,7 @@ public final class PartyFacade {
      * @param source The first user
      * @param other The second user
      */
-    public <T extends User> boolean areUsersInSameParty(Player source, Player other) throws PartyCommandException{
+    public <T extends User> boolean arePlayersInSameParty(Player source, Player other) {
         Optional<Party> party1 = getPlayerParty(source);
         Optional<Party> party2 = getPlayerParty(other);
         return party1.isPresent() && party2.isPresent() && party1.get().equals(party2.get());
