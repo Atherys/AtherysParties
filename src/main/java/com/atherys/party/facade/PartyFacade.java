@@ -1,7 +1,6 @@
 package com.atherys.party.facade;
 
 import com.atherys.core.utils.Question;
-import com.atherys.party.AtherysParties;
 import com.atherys.party.data.PartyData;
 import com.atherys.party.entity.Party;
 import com.atherys.party.exception.PartyCommandException;
@@ -20,6 +19,9 @@ import org.spongepowered.api.text.format.TextStyles;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
+
+import static org.spongepowered.api.text.format.TextColors.*;
+import static org.spongepowered.api.text.format.TextStyles.BOLD;
 
 @Singleton
 public final class PartyFacade {
@@ -64,7 +66,6 @@ public final class PartyFacade {
 
         // If neither the inviter nor the invitee are already in a party, create a new one
         if (!inviterParty.isPresent() && !inviteeParty.isPresent()) {
-            AtherysParties.getInstance().getLogger().info("Yes");
             party = partyService.createParty(source);
             invite(source, target, party);
         }
@@ -84,21 +85,20 @@ public final class PartyFacade {
     }
 
     private void invite(Player source, Player target, Party party) {
-        Question question = Question.of(Text.of(source.getName(), " has invited you to their party."))
-                .addAnswer(Question.Answer.of(Text.of("Accept"), playerInvitee -> {
+        Question question = Question.of(partyMsg.formatInfo(GOLD, source.getName(), DARK_GREEN, " has invited you to their party."))
+                .addAnswer(Question.Answer.of(Text.of(GREEN, "Accept"), playerInvitee -> {
+                    partyMsg.info(playerInvitee, "You have accepted ", GOLD, source.getName(), "'s", DARK_GREEN, " invite.");
                     partyService.addMember(party, target);
-
-                    partyMsg.info(playerInvitee, "You have accepted ", source.getName(), "'s invite");
-                    partyMsg.sendInfoToParty(party, playerInvitee.getName(), " has joined the party!");
+                    partyMsg.sendInfoToParty(party, GOLD, playerInvitee.getName(), DARK_GREEN, " has joined the party!");
                 }))
-                .addAnswer(Question.Answer.of(Text.of("Reject"), playerInvitee -> {
+                .addAnswer(Question.Answer.of(Text.of(DARK_RED, "Reject"), playerInvitee -> {
                     partyMsg.error(playerInvitee, "You have rejected ", source.getName(), "'s invite");
                 }))
                 .build();
 
         question.pollChat(target);
 
-        partyMsg.sendInfoToParty(party, target.getName(), " has been invited to the party.");
+        partyMsg.sendInfoToParty(party, GOLD, target.getName(), DARK_GREEN, " has been invited to the party.");
     }
 
     /**
@@ -121,12 +121,19 @@ public final class PartyFacade {
             throw PartyCommandException.notInParty(target);
         }
 
-        // if the kicker is not the leader of the party, error
         if (isPlayerPartyLeader(source, kickerParty)) {
-            partyService.removeMember(kickerParty, target);
-            partyMsg.sendErrorToParty(kickerParty, target.getName(), " has been kicked from the party.");
-            if (target instanceof MessageReceiver) {
-                partyMsg.error((MessageReceiver) target, "You have been kicked from the party.");
+            // If the party will only have one member left, disband
+            if (kickerParty.getMembers().size() <= 2) {
+
+                partyMsg.sendErrorToParty(kickerParty, "Your party has been disbanded.");
+                partyService.removeParty(kickerParty);
+            } else {
+
+                partyService.removeMember(kickerParty, target);
+                partyMsg.sendErrorToParty(kickerParty, target.getName(), " has been kicked from the party.");
+                if (target instanceof MessageReceiver) {
+                    partyMsg.error((MessageReceiver) target, "You have been kicked from the party.");
+                }
             }
         } else {
             throw PartyCommandException.notLeader();
@@ -143,12 +150,15 @@ public final class PartyFacade {
 
         Party party = getPlayerPartyOrThrow(source);
 
-        if (party.getMembers().size() <= 1) {
+        if (party.getMembers().size() <= 2) {
+            partyService.removeMember(party, source);
+            partyMsg.info(source, "You have left the party.");
+
+            partyMsg.sendErrorToParty(party, source.getName(), " has left the party. Your party has been disbanded.");
             partyService.removeParty(party);
-            partyMsg.info(source, "Your party has been disbanded.");
         } else {
             partyService.removeMember(party, source);
-            partyMsg.sendInfoToParty(party, source.getName(), " has left the party.");
+            partyMsg.sendErrorToParty(party, source.getName(), " has left the party.");
             partyMsg.info(source, "You have left the party.");
         }
     }
@@ -172,7 +182,7 @@ public final class PartyFacade {
         if (isPlayerPartyLeader(source, currentParty)) {
             if (currentParty.equals(nextParty)) {
                 partyService.setPartyLeader(currentParty, target.getUniqueId());
-                partyMsg.sendInfoToParty(currentParty, target.getName(), " is now the leader of the party.");
+                partyMsg.sendInfoToParty(currentParty, GOLD, target.getName(), DARK_GREEN, " is now the leader of the party.");
             } else {
                 throw PartyCommandException.notInParty(target);
             }
@@ -209,15 +219,18 @@ public final class PartyFacade {
 
         Text.Builder partyMembers = Text.builder();
 
-        getOnlinePartyMembers(party).forEach(partyMember -> {
-            if (isPlayerPartyLeader(partyMember, party)) {
-                partyMembers.append(Text.of(TextColors.GOLD, TextStyles.BOLD, partyMember.getName(), "; "));
-            } else {
-                partyMembers.append(Text.of(TextColors.GOLD, TextStyles.RESET, partyMember.getName(), "; "));
-            }
+        Sponge.getServer().getPlayer(party.getLeader()).ifPresent(player -> {
+            partyMembers.append(Text.of(GOLD, BOLD, player.getName()));
         });
 
-        source.sendMessage(partyMembers.build());
+        getOnlinePartyMembers(party).forEach(partyMember -> {
+            if (!isPlayerPartyLeader(partyMember, party)) {
+                partyMembers.append(Text.of(DARK_GREEN, ", ", GOLD, TextStyles.RESET, partyMember.getName()));
+            }
+        });
+        partyMembers.append(Text.of(DARK_GREEN, "."));
+
+        partyMsg.info(source, partyMembers.build());
     }
 
     public void onPlayerAttack(DamageEntityEvent event, Player source, Player target) {
