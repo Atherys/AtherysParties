@@ -1,38 +1,24 @@
 package com.atherys.party.commands;
 
-import com.atherys.core.command.UserCommand;
+import com.atherys.core.command.PlayerCommand;
 import com.atherys.core.command.annotation.Aliases;
 import com.atherys.core.command.annotation.Permission;
-import com.atherys.party.database.PartyManager;
-import com.atherys.party.PartyMsg;
+import com.atherys.party.AtherysParties;
 import org.spongepowered.api.command.CommandException;
 import org.spongepowered.api.command.CommandResult;
 import org.spongepowered.api.command.args.CommandContext;
-import org.spongepowered.api.entity.living.player.User;
+import org.spongepowered.api.entity.living.player.Player;
 
 import javax.annotation.Nonnull;
 
 @Aliases({"disband", "remove"})
 @Permission("atherysparties.party.disband")
-public class PartyDisbandCommand extends UserCommand {
+public class PartyDisbandCommand implements PlayerCommand {
 
     @Nonnull
     @Override
-    public CommandResult execute(@Nonnull User source, @Nonnull CommandContext args) throws CommandException {
-        if (!PartyManager.getInstance().hasUserParty(source)) {
-            PartyMsg.error(source, "You are not in a party!");
-            return CommandResult.success();
-        }
-
-        PartyManager.getInstance().getUserParty(source).ifPresent(party -> {
-            if (!party.isLeader(source)) {
-                PartyMsg.error(source, "You are not the leader of this party.");
-                return;
-            }
-
-            PartyMsg.error(party, "Your party has been disbanded.");
-            PartyManager.getInstance().removeParty(party);
-        });
+    public CommandResult execute(@Nonnull Player source, @Nonnull CommandContext args) throws CommandException {
+        AtherysParties.getInstance().getPartyFacade().disbandParty(source);
 
         return CommandResult.success();
     }

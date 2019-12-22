@@ -1,20 +1,16 @@
 package com.atherys.party.commands;
 
-import com.atherys.core.command.UserCommand;
+import com.atherys.core.command.PlayerCommand;
 import com.atherys.core.command.annotation.Aliases;
 import com.atherys.core.command.annotation.Children;
 import com.atherys.core.command.annotation.Permission;
-import com.atherys.party.Party;
-import com.atherys.party.database.PartyManager;
-import com.atherys.party.PartyMsg;
+import com.atherys.party.AtherysParties;
 import org.spongepowered.api.command.CommandException;
 import org.spongepowered.api.command.CommandResult;
 import org.spongepowered.api.command.args.CommandContext;
-import org.spongepowered.api.entity.living.player.User;
-import org.spongepowered.api.text.Text;
-import org.spongepowered.api.text.format.TextColors;
+import org.spongepowered.api.entity.living.player.Player;
 
-import java.util.Optional;
+import javax.annotation.Nonnull;
 
 @Aliases("party")
 @Children({
@@ -26,30 +22,12 @@ import java.util.Optional;
         PartyPvpCommand.class
 })
 @Permission("atherysparties.party")
-public class PartyCommand extends UserCommand {
+public class PartyCommand implements PlayerCommand {
 
+    @Nonnull
     @Override
-    public CommandResult execute(User user, CommandContext args) throws CommandException {
-
-        Optional<Party> userParty = PartyManager.getInstance().getUserParty(user);
-
-        if (userParty.isPresent()) {
-            Text.Builder partyMembers = Text.builder();
-
-            userParty.get().getMembers().forEach(partyMember -> {
-                if (userParty.get().isLeader(partyMember)) {// is leader?
-                    partyMembers.append(Text.of(TextColors.RED, partyMember.getName(), "; "));
-                } else {
-                    partyMembers.append(Text.of(TextColors.DARK_AQUA, partyMember.getName(), "; "));
-                }
-            });
-
-            PartyMsg.info(user, "Party Members: ", partyMembers.build());
-        } else {
-            PartyMsg.error(user, "You are not currently in a party with anyone else.");
-        }
-
+    public CommandResult execute(@Nonnull Player source, @Nonnull CommandContext args) throws CommandException {
+        AtherysParties.getInstance().getPartyFacade().printPlayerParty(source);
         return CommandResult.success();
     }
-
 }

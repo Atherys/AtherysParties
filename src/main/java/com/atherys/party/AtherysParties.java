@@ -5,8 +5,11 @@ import com.atherys.core.command.CommandService;
 import com.atherys.party.commands.PartyCommand;
 import com.atherys.party.data.PartyData;
 import com.atherys.party.data.PartyKeys;
-import com.atherys.party.database.PartyManager;
-import com.atherys.party.listeners.PlayerPartyListener;
+import com.atherys.party.facade.PartyFacade;
+import com.atherys.party.facade.PartyMessagingFacade;
+import com.atherys.party.listener.PlayerPartyListener;
+import com.atherys.party.service.PartyService;
+import com.google.inject.Injector;
 import org.slf4j.Logger;
 import org.spongepowered.api.Sponge;
 import org.spongepowered.api.data.DataRegistration;
@@ -15,13 +18,11 @@ import org.spongepowered.api.event.Order;
 import org.spongepowered.api.event.game.state.GameInitializationEvent;
 import org.spongepowered.api.event.game.state.GamePreInitializationEvent;
 import org.spongepowered.api.event.game.state.GameStartingServerEvent;
-import org.spongepowered.api.event.game.state.GameStoppingServerEvent;
 import org.spongepowered.api.plugin.Dependency;
 import org.spongepowered.api.plugin.Plugin;
 import org.spongepowered.api.plugin.PluginContainer;
 
 import javax.inject.Inject;
-import java.io.IOException;
 
 import static com.atherys.party.AtherysParties.*;
 
@@ -39,49 +40,36 @@ public class AtherysParties {
 
     private static boolean init = false;
 
-    private static PartyConfig config;
-
     @Inject
     private Logger logger;
 
     @Inject
     PluginContainer container;
 
+    @Inject
+    Injector spongeInjector;
+    private Injector partyInjector;
+
+    private Components components;
+
     private void init() {
         instance = this;
 
-        try {
-            config = new PartyConfig();
-            config.init();
-        } catch (IOException e) {
-            e.printStackTrace();
-            init = false;
-            return;
-        }
-
-        if (config.DEFAULT) {
-            logger.error("AtherysCore config set to default. Plugin will halt. Please modify defaultConfig in config.conf to 'false' once non-default values have been inserted.");
-            init = false;
-            return;
-        }
+        components = new Components();
+        partyInjector = spongeInjector.createChildInjector(new AtherysPartiesModule());
+        partyInjector.injectMembers(components);
 
         init = true;
-
     }
 
     private void start() {
-        Sponge.getEventManager().registerListeners(this, new PlayerPartyListener());
-        PartyManager.getInstance().loadAll();
+        Sponge.getEventManager().registerListeners(this, components.partyListener);
 
         try {
             AtherysCore.getCommandService().register(new PartyCommand(), this);
         } catch (CommandService.AnnotatedCommandException e) {
             e.printStackTrace();
         }
-    }
-
-    private void stop() {
-        if (init) PartyManager.getInstance().saveAll();
     }
 
     @Listener
@@ -107,22 +95,42 @@ public class AtherysParties {
         }
     }
 
-    @Listener
-    public void onStop(GameStoppingServerEvent event) {
-        if (init) {
-            stop();
-        }
-    }
-
     public Logger getLogger() {
         return logger;
     }
 
-    public static PartyConfig getConfig() {
-        return config;
-    }
 
     public static AtherysParties getInstance() {
         return instance;
+    }
+
+    public PartyService getPartyService() {
+        return components.partyService;
+    }
+
+    public PartyFacade getPartyFacade() {
+        return components.partyFacade;
+    }
+
+    public PlayerPartyListener getPartyListener() {
+        return components.partyListener;
+    }
+
+    public PartyMessagingFacade getPartyMessagingFacade() {
+        return components.partyMessagingFacade;
+    }
+
+    private static class Components {
+        @Inject
+        private PartyService partyService;
+
+        @Inject
+        private PartyFacade partyFacade;
+
+        @Inject
+        private PlayerPartyListener partyListener;
+
+        @Inject
+        private PartyMessagingFacade partyMessagingFacade;
     }
 }
