@@ -1,32 +1,28 @@
 package com.atherys.party.commands;
 
 import com.atherys.core.command.ParameterizedCommand;
-import com.atherys.core.command.UserCommand;
+import com.atherys.core.command.PlayerCommand;
 import com.atherys.core.command.annotation.Aliases;
 import com.atherys.core.command.annotation.Permission;
 import com.atherys.party.AtherysParties;
-import com.atherys.party.PartyService;
-import com.atherys.party.PartyMsg;
 import org.spongepowered.api.command.CommandException;
 import org.spongepowered.api.command.CommandResult;
 import org.spongepowered.api.command.args.CommandContext;
 import org.spongepowered.api.command.args.CommandElement;
 import org.spongepowered.api.command.args.GenericArguments;
-import org.spongepowered.api.entity.living.player.User;
+import org.spongepowered.api.entity.living.player.Player;
 import org.spongepowered.api.text.Text;
 
 import javax.annotation.Nonnull;
-import java.util.Optional;
 
 @Aliases("leader")
 @Permission("atherysparties.party.leader")
-public class PartyLeaderCommand implements UserCommand, ParameterizedCommand {
+public class PartyLeaderCommand implements PlayerCommand, ParameterizedCommand {
 
     @Nonnull
     @Override
-    public CommandResult execute(@Nonnull User source, @Nonnull CommandContext args) throws CommandException {
-
-        args.<User>getOne("newLeader").ifPresent(newLeader -> AtherysParties.getPartyService().setPartyLeader(source, newLeader));
+    public CommandResult execute(@Nonnull Player source, @Nonnull CommandContext args) throws CommandException {
+        AtherysParties.getInstance().getPartyFacade().setPartyLeader(source, args.<Player>getOne("newLeader").get());
 
         return CommandResult.success();
     }
@@ -34,7 +30,7 @@ public class PartyLeaderCommand implements UserCommand, ParameterizedCommand {
     @Override
     public CommandElement[] getArguments() {
         return new CommandElement[]{
-                GenericArguments.user(Text.of("newLeader"))
+                GenericArguments.player(Text.of("newLeader"))
         };
     }
 }

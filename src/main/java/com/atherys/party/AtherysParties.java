@@ -2,11 +2,14 @@ package com.atherys.party;
 
 import com.atherys.core.AtherysCore;
 import com.atherys.core.command.CommandService;
-import com.atherys.core.event.AtherysHibernateConfigurationEvent;
 import com.atherys.party.commands.PartyCommand;
 import com.atherys.party.data.PartyData;
 import com.atherys.party.data.PartyKeys;
-import com.atherys.party.listeners.PlayerPartyListener;
+import com.atherys.party.facade.PartyFacade;
+import com.atherys.party.facade.PartyMessagingFacade;
+import com.atherys.party.listener.PlayerPartyListener;
+import com.atherys.party.service.PartyService;
+import com.google.inject.Injector;
 import org.slf4j.Logger;
 import org.spongepowered.api.Sponge;
 import org.spongepowered.api.data.DataRegistration;
@@ -15,7 +18,6 @@ import org.spongepowered.api.event.Order;
 import org.spongepowered.api.event.game.state.GameInitializationEvent;
 import org.spongepowered.api.event.game.state.GamePreInitializationEvent;
 import org.spongepowered.api.event.game.state.GameStartingServerEvent;
-import org.spongepowered.api.event.game.state.GameStoppingServerEvent;
 import org.spongepowered.api.plugin.Dependency;
 import org.spongepowered.api.plugin.Plugin;
 import org.spongepowered.api.plugin.PluginContainer;
@@ -44,30 +46,30 @@ public class AtherysParties {
     @Inject
     PluginContainer container;
 
-    private PartyService partyService;
+    @Inject
+    Injector spongeInjector;
+    private Injector partyInjector;
+
+    private Components components;
 
     private void init() {
         instance = this;
 
-        init = true;
+        components = new Components();
+        partyInjector = spongeInjector.createChildInjector(new AtherysPartiesModule());
+        partyInjector.injectMembers(components);
 
+        init = true;
     }
 
     private void start() {
-        Sponge.getEventManager().registerListeners(this, new PlayerPartyListener());
-
-        partyService = PartyService.getInstance();
-        partyService.loadAll();
+        Sponge.getEventManager().registerListeners(this, components.partyListener);
 
         try {
             AtherysCore.getCommandService().register(new PartyCommand(), this);
         } catch (CommandService.AnnotatedCommandException e) {
             e.printStackTrace();
         }
-    }
-
-    private void stop() {
-        if (init) PartyService.getInstance().saveAll();
     }
 
     @Listener
@@ -93,25 +95,42 @@ public class AtherysParties {
         }
     }
 
-    @Listener
-    public void onStop(GameStoppingServerEvent event) {
-        if (init) {
-            stop();
-        }
-    }
-
-    @Listener
-    public void onHibernateConfiguration(AtherysHibernateConfigurationEvent event) {
-        event.registerEntity(Party.class);
-    }
-
     public Logger getLogger() {
         return logger;
     }
 
-    public static PartyService getPartyService() { return AtherysParties.getInstance().partyService; }
 
     public static AtherysParties getInstance() {
         return instance;
+    }
+
+    public PartyService getPartyService() {
+        return components.partyService;
+    }
+
+    public PartyFacade getPartyFacade() {
+        return components.partyFacade;
+    }
+
+    public PlayerPartyListener getPartyListener() {
+        return components.partyListener;
+    }
+
+    public PartyMessagingFacade getPartyMessagingFacade() {
+        return components.partyMessagingFacade;
+    }
+
+    private static class Components {
+        @Inject
+        private PartyService partyService;
+
+        @Inject
+        private PartyFacade partyFacade;
+
+        @Inject
+        private PlayerPartyListener partyListener;
+
+        @Inject
+        private PartyMessagingFacade partyMessagingFacade;
     }
 }
