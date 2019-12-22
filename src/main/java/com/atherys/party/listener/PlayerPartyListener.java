@@ -18,5 +18,4 @@ public class PlayerPartyListener {
             AtherysParties.getInstance().getPartyFacade().onPlayerAttack(event, player, target);
         });
     }
-
 }
