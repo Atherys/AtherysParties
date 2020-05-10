@@ -18,6 +18,7 @@ import org.spongepowered.api.text.format.TextStyles;
 
 import java.util.Optional;
 import java.util.Set;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 import static org.spongepowered.api.text.format.TextColors.*;
@@ -68,12 +69,18 @@ public final class PartyFacade {
         if (!inviterParty.isPresent() && !inviteeParty.isPresent()) {
             party = partyService.createParty(source);
             invite(source, target, party);
+            return;
         }
 
         // If the inviter is in a party, check if they are a leader ( can invite new members )
         if (inviterParty.isPresent()) {
 
             party = inviterParty.get();
+
+            // If the target is already in the party
+            if (party.getMembers().contains(target.getUniqueId())) {
+                throw new PartyCommandException(target.getName(), " is already in your party.");
+            }
 
             // If the inviter is the party leader, invite the invitee
             if (isPlayerPartyLeader(source, party)) {
@@ -150,16 +157,24 @@ public final class PartyFacade {
 
         Party party = getPlayerPartyOrThrow(source);
 
-        if (party.getMembers().size() <= 2) {
-            partyService.removeMember(party, source);
-            partyMsg.info(source, "You have left the party.");
+        partyService.removeMember(party, source);
+        partyMsg.info(source, "You have left the party.");
 
+        if (party.getMembers().size() <= 2) {
             partyMsg.sendErrorToParty(party, source.getName(), " has left the party. Your party has been disbanded.");
             partyService.removeParty(party);
+        } else if (party.getLeader().equals(source.getUniqueId())) {
+            for (UUID member : party.getMembers()) {
+                Optional<Player> player = Sponge.getServer().getPlayer(member);
+
+                if (player.isPresent()) {
+                    partyService.setPartyLeader(party, member);
+                    partyMsg.sendErrorToParty(party, source.getName(), " has left the party. ", player.get().getName(), " is the new leader.");
+                    return;
+                }
+            }
         } else {
-            partyService.removeMember(party, source);
             partyMsg.sendErrorToParty(party, source.getName(), " has left the party.");
-            partyMsg.info(source, "You have left the party.");
         }
     }
 
