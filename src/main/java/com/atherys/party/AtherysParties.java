@@ -1,7 +1,9 @@
 package com.atherys.party;
 
+import com.atherys.chat.AtherysChat;
 import com.atherys.core.AtherysCore;
 import com.atherys.core.command.CommandService;
+import com.atherys.party.chat.PartyChannel;
 import com.atherys.party.commands.PartyCommand;
 import com.atherys.party.data.PartyData;
 import com.atherys.party.data.PartyKeys;
@@ -64,6 +66,8 @@ public class AtherysParties {
 
     private void start() {
         Sponge.getEventManager().registerListeners(this, components.partyListener);
+
+        AtherysChat.getInstance().getChannelService().registerChannel(new PartyChannel());
 
         try {
             AtherysCore.getCommandService().register(new PartyCommand(), this);
