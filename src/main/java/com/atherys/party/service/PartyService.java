@@ -58,8 +58,8 @@ public final class PartyService {
     public void removeMember(Party party, User member) {
         member.getSubjectData().setPermission(SubjectData.GLOBAL_CONTEXT, PartyChannel.PERMISSION, Tristate.FALSE);
         Sponge.getServer().getPlayer(member.getUniqueId()).ifPresent(player -> {
-            AtherysChannel channel = AtherysChat.getInstance().getChannelService().getChannelById("party").get();
-            AtherysChat.getInstance().getChannelFacade().removePlayerFromChannel(player, channel);
+            Optional<AtherysChannel> channel = AtherysChat.getInstance().getChatService().getChannelById("party");
+            channel.ifPresent(atherysChannel -> AtherysChat.getInstance().getChannelFacade().removePlayerFromChannel(player, atherysChannel));
         });
         party.removeMember(member.getUniqueId());
         member.remove(PartyData.class);

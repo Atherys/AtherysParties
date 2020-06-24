@@ -67,7 +67,7 @@ public class AtherysParties {
     private void start() {
         Sponge.getEventManager().registerListeners(this, components.partyListener);
 
-        AtherysChat.getInstance().getChannelService().registerChannel(new PartyChannel());
+        AtherysChat.getInstance().getChatService().registerChannel(new PartyChannel());
 
         try {
             AtherysCore.getCommandService().register(new PartyCommand(), this);
