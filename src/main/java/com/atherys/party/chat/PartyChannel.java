@@ -15,10 +15,14 @@ public class PartyChannel extends AtherysChannel {
 
     public PartyChannel() {
         super("party");
+        Set<String> aliases= new HashSet<>();
+        aliases.add("pc");
+        this.setAliases(aliases);
         this.setPermission(PERMISSION);
-        this.setBroadcast(false);
-        this.setPrefix(Text.of(TextColors.WHITE, "[", TextColors.DARK_AQUA, TextColors.WHITE, "]"));
-        this.setColor(TextColors.DARK_AQUA);
+        this.setPrefix("[&3Party&r]");
+        this.setSuffix("");
+        this.setFormat("%cprefix %player: %message %csuffix");
+        this.setName("&3Party");
     }
 
     @Override
