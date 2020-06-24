@@ -224,10 +224,9 @@ public final class PartyFacade {
     }
 
     /**
-     * Retrieve information in Text form for the user's party.
+     * Send a player their party's info
      *
      * @param source the user whose party is to be looked at
-     * @return A Text object with the required information
      */
     public void printPlayerParty(Player source) throws PartyCommandException {
         Party party = getPlayerPartyOrThrow(source);
