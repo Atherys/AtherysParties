@@ -36,7 +36,7 @@ public class AtherysParties {
     public static final String ID = "atherysparties";
     public static final String NAME = "A'therys Parties";
     public static final String DESCRIPTION = "A Party plugin for the A'therys Horizons server";
-    public static final String VERSION = "%PLUGIN_VERSION%";
+    public static final String VERSION = "%PROJECT_VERSION%";
 
     private static AtherysParties instance;
 
