@@ -29,7 +29,8 @@ import javax.inject.Inject;
 import static com.atherys.party.AtherysParties.*;
 
 @Plugin(id = ID, version = VERSION, name = NAME, description = DESCRIPTION, dependencies = {
-        @Dependency(id = "atheryscore")
+        @Dependency(id = "atheryscore"),
+        @Dependency(id = "atherysparties", optional = true)
 })
 public class AtherysParties {
 
@@ -67,7 +68,9 @@ public class AtherysParties {
     private void start() {
         Sponge.getEventManager().registerListeners(this, components.partyListener);
 
-        AtherysChat.getInstance().getChatService().registerChannel(new PartyChannel());
+        if (Sponge.getPluginManager().isLoaded("atherysparties")) {
+            AtherysChat.getInstance().getChatService().registerChannel(new PartyChannel());
+        }
 
         try {
             AtherysCore.getCommandService().register(new PartyCommand(), this);
