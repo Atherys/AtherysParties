@@ -1,8 +1,7 @@
 package com.atherys.party.service;
 
-import com.atherys.chat.AtherysChat;
-import com.atherys.chat.model.AtherysChannel;
 import com.atherys.core.utils.UserUtils;
+import com.atherys.party.chat.AtherysChatIntegration;
 import com.atherys.party.data.PartyData;
 import com.atherys.party.entity.Party;
 import com.google.inject.Singleton;
@@ -55,10 +54,7 @@ public final class PartyService {
 
     public void removeMember(Party party, User member) {
         member.getSubjectData().setPermission(SubjectData.GLOBAL_CONTEXT, PARTY_CHANNEL_PERMISSION, Tristate.FALSE);
-        Sponge.getServer().getPlayer(member.getUniqueId()).ifPresent(player -> {
-            Optional<AtherysChannel> channel = AtherysChat.getInstance().getChatService().getChannelById("party");
-            channel.ifPresent(atherysChannel -> AtherysChat.getInstance().getChannelFacade().removePlayerFromChannel(player, atherysChannel));
-        });
+        Sponge.getServer().getPlayer(member.getUniqueId()).ifPresent(AtherysChatIntegration::removePlayerFromPartyChannel);
         party.removeMember(member.getUniqueId());
         member.remove(PartyData.class);
     }
