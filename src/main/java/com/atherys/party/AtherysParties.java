@@ -29,7 +29,7 @@ import static com.atherys.party.AtherysParties.*;
 
 @Plugin(id = ID, version = VERSION, name = NAME, description = DESCRIPTION, dependencies = {
         @Dependency(id = "atheryscore"),
-        @Dependency(id = "atherysparties", optional = true)
+        @Dependency(id = "atheryschat", optional = true)
 })
 public class AtherysParties {
 
