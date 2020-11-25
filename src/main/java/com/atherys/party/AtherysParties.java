@@ -7,7 +7,7 @@ import com.atherys.party.data.PartyData;
 import com.atherys.party.data.PartyKeys;
 import com.atherys.party.facade.PartyFacade;
 import com.atherys.party.facade.PartyMessagingFacade;
-import com.atherys.party.integration.AtherysChatIntegration;
+import com.atherys.party.chat.AtherysChatIntegration;
 import com.atherys.party.listener.PlayerPartyListener;
 import com.atherys.party.service.PartyService;
 import com.google.inject.Injector;

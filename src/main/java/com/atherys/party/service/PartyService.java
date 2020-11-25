@@ -3,15 +3,12 @@ package com.atherys.party.service;
 import com.atherys.chat.AtherysChat;
 import com.atherys.chat.model.AtherysChannel;
 import com.atherys.core.utils.UserUtils;
-import com.atherys.party.AtherysParties;
-import com.atherys.party.chat.PartyChannel;
 import com.atherys.party.data.PartyData;
 import com.atherys.party.entity.Party;
 import com.google.inject.Singleton;
 import org.apache.commons.lang3.RandomUtils;
 import org.spongepowered.api.Sponge;
 import org.spongepowered.api.entity.living.player.User;
-import org.spongepowered.api.service.context.Context;
 import org.spongepowered.api.service.permission.SubjectData;
 import org.spongepowered.api.util.Tristate;
 
@@ -24,6 +21,7 @@ import java.util.stream.Collectors;
  */
 @Singleton
 public final class PartyService {
+    public static final String PARTY_CHANNEL_PERMISSION = "atherysparties.chat";
 
     private Map<UUID, Party> parties = new HashMap<>();
 
@@ -50,13 +48,13 @@ public final class PartyService {
     }
 
     public void addMember(Party party, User member) {
-        member.getSubjectData().setPermission(SubjectData.GLOBAL_CONTEXT, PartyChannel.PERMISSION, Tristate.TRUE);
+        member.getSubjectData().setPermission(SubjectData.GLOBAL_CONTEXT, PARTY_CHANNEL_PERMISSION, Tristate.TRUE);
         party.addMember(member.getUniqueId());
         member.offer(new PartyData(party.getUniqueId()));
     }
 
     public void removeMember(Party party, User member) {
-        member.getSubjectData().setPermission(SubjectData.GLOBAL_CONTEXT, PartyChannel.PERMISSION, Tristate.FALSE);
+        member.getSubjectData().setPermission(SubjectData.GLOBAL_CONTEXT, PARTY_CHANNEL_PERMISSION, Tristate.FALSE);
         Sponge.getServer().getPlayer(member.getUniqueId()).ifPresent(player -> {
             Optional<AtherysChannel> channel = AtherysChat.getInstance().getChatService().getChannelById("party");
             channel.ifPresent(atherysChannel -> AtherysChat.getInstance().getChannelFacade().removePlayerFromChannel(player, atherysChannel));

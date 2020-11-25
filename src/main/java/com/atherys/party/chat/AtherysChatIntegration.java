@@ -1,4 +1,4 @@
-package com.atherys.party.integration;
+package com.atherys.party.chat;
 
 import com.atherys.chat.AtherysChat;
 import com.atherys.party.chat.PartyChannel;
