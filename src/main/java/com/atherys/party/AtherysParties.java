@@ -67,7 +67,7 @@ public class AtherysParties {
     private void start() {
         Sponge.getEventManager().registerListeners(this, components.partyListener);
 
-        if (Sponge.getPluginManager().isLoaded("atherysparties")) {
+        if (Sponge.getPluginManager().isLoaded("atheryschat")) {
             AtherysChatIntegration.registerPartyChat();
         }
 
