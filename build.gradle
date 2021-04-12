@@ -6,7 +6,7 @@ plugins {
 }
 
 dependencies {
-    shadow 'com.Atherys:AtherysChat:latest'
+    shadow 'com.atherys:AtherysChat:latest'
 }
 
 group 'com.atherys'
